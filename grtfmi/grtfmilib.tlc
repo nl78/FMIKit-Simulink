@@ -142,6 +142,7 @@
     %endif
   %else
     %assign index = 0
+    %assign offset = %<vr> - 1
     %foreach colid = nCols
     %foreach rowid = nRows
       %if nCols > 1 && nRows > 1
@@ -192,10 +193,6 @@
         %assign dtypeID = 6
         %assign typeAttr = " declaredType=\"%<dataType.DTName>\"%<typeAttr>"
       %endif
-      %selectfile incfile
-    modelVariables[%<vr-1>].dtypeID = %<dtypeID>;
-    modelVariables[%<vr-1>].size    = 0;
-    modelVariables[%<vr-1>].address = %<dataName>%<dataSubs>);
       %selectfile xmlfile2
     <ScalarVariable name="%<variableName>%<variableSubs>" valueReference="%<vr>"%<variableAttr>>
       <%<fmiType>%<startAttr>%<typeAttr>/>
@@ -204,6 +201,26 @@
       %assign vr = vr + 1
     %endforeach
     %endforeach
+    %selectfile incfile
+    %if nCols > 1 && nRows > 1
+    for(unsigned int col=0; col<%<nCols>; col++)
+        for(unsigned int row=0; row<%<nRows>; row++) {
+            const unsigned int i = %<offset>+row+(col*%<nCols>)
+            modelVariables[%<offset>+i].dtypeID = %<dtypeID>;
+            modelVariables[%<offset>+i].size    = 0;
+            modelVariables[%<offset>+i].address = %<dataName>[i]);
+        }
+    %elseif width > 1
+    for(unsigned int i=0; i<%<width>; i++) {
+        modelVariables[%<offset>+i].dtypeID = %<dtypeID>;
+        modelVariables[%<offset>+i].size    = 0;
+        modelVariables[%<offset>+i].address = %<dataName>[i]);
+    }   
+    %else
+    modelVariables[%<offset>].dtypeID = %<dtypeID>;
+    modelVariables[%<offset>].size    = 0;
+    modelVariables[%<offset>].address = %<dataName>);
+    %endif
   %endif
   %return vr
 %endfunction
